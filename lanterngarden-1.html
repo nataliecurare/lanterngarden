@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1B2A21">
+<title>Lanterngarden</title>
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%231B2A21'/><text x='50' y='70' font-size='62' text-anchor='middle'>🌷</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1B2A21;--panel:#22362A;--line:#3D5646;--lantern:#F2B84B;--lilac:#B9A3E3;--fern:#8FC48A;--mist:#E6ECE3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--mist);font-family:'Nunito',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;transition:background .6s}
+body.focusing{background:#07100B}
+#app{max-width:520px;margin:0 auto;padding:16px 14px 32px}
+.view[hidden]{display:none}
+h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:31px;margin:4px 0 2px;letter-spacing:-.01em}
+.sub{opacity:.75;font-size:14px;margin:0 0 12px;line-height:1.4}
+button{font:inherit;cursor:pointer}
+#tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;scrollbar-width:none}
+#tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1px solid var(--line);background:transparent;color:var(--mist);padding:8px 13px;border-radius:999px;font-size:14px}
+.tab.on{background:var(--lantern);color:#2A1F08;border-color:var(--lantern);font-weight:700}
+.tab:disabled{opacity:.45}
+#scene{position:relative;height:52vh;min-height:300px;border-radius:22px;overflow:hidden;box-shadow:inset 0 -50px 70px rgba(0,0,0,.35)}
+.pl,.vi{position:absolute;transform:translateX(-50%);line-height:1;user-select:none;-webkit-user-select:none}
+.vi{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translate(-50%,-7px)}}
+.empty{position:absolute;left:24px;right:24px;top:36%;text-align:center;font-family:'Fraunces',Georgia,serif;font-size:18px;line-height:1.45;opacity:.9;margin:0}
+#sceneInfo{font-size:13px;opacity:.72;margin:9px 4px 14px;line-height:1.4}
+.primary{width:100%;padding:18px;border:0;border-radius:18px;background:var(--lantern);color:#2A1F08;font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600}
+.ghost{width:100%;margin-top:10px;padding:14px;border-radius:16px;background:transparent;border:1px solid var(--line);color:var(--mist);font-size:16px}
+.seed{width:100%;margin-bottom:10px;padding:15px;border-radius:16px;border:1px dashed var(--lilac);background:rgba(185,163,227,.13);color:var(--mist);font-size:16px}
+#storeNote{font-size:12px;opacity:.6;text-align:center;margin-top:12px}
+/* focus */
+#focus{text-align:center;padding-top:6px}
+#focus>*{transition:opacity 1.5s}
+body.dim #focus>*{opacity:.25}
+.ftop{display:flex;justify-content:space-between;gap:10px;font-size:13px;opacity:.75;min-height:18px}
+#fpass{color:var(--lilac)}
+.growth{position:relative;width:220px;height:220px;margin:30px auto 6px}
+.growth svg{position:absolute;inset:0;transform:rotate(-90deg)}
+#sprout{position:absolute;inset:0;display:grid;place-items:center;font-size:66px;transition:transform 1s ease}
+#ftime{font-family:'Fraunces',Georgia,serif;font-size:66px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:4px}
+#fnext{opacity:.7;font-size:15px}
+#frow{min-height:44px;margin:18px 0 14px;font-size:30px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+#fwarn{background:rgba(242,184,75,.12);border:1px solid rgba(242,184,75,.4);border-radius:14px;padding:10px 12px;font-size:13px;text-align:left;line-height:1.45}
+#fwarn[hidden]{display:none}
+.fbtns{display:grid;gap:10px;margin-top:12px}
+.music{padding:15px;border-radius:16px;border:1px solid var(--lilac);background:transparent;color:var(--lilac);font-size:16px}
+.end{position:relative;overflow:hidden;padding:15px;border-radius:16px;border:1px solid #4A5F50;background:transparent;color:var(--mist);opacity:.85;font-size:16px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.end .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(229,150,120,.35)}
+.end.holding .fill{width:100%;transition:width 1.2s linear}
+.end span{position:relative}
+.fnote{font-size:13px;opacity:.6;line-height:1.5;margin:16px 6px 0}
+/* modal + toast */
+#modal{position:fixed;inset:0;background:rgba(5,10,7,.74);display:grid;place-items:center;padding:20px;z-index:30}
+#modal[hidden]{display:none}
+.card{background:var(--panel);border-radius:24px;padding:24px 20px;max-width:420px;width:100%;text-align:center;border:1px solid var(--line);max-height:88vh;overflow:auto}
+.card h2{font-family:'Fraunces',Georgia,serif;margin:0 0 8px;font-size:25px;font-weight:600}
+.card p{line-height:1.5}
+.big{font-size:84px;margin:8px 0 6px;animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.2);opacity:0}}
+.news{text-align:left;font-size:14px;line-height:1.5;margin:14px 0 0;padding:0;list-style:none}
+.news li{padding:8px 0;border-top:1px solid var(--line)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--lilac);color:#1D1533;margin-left:7px;vertical-align:middle;font-family:'Nunito',sans-serif}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;background:#2C4434;border:1px solid #4A6A55;padding:11px 16px;border-radius:14px;font-size:15px;transition:.35s;z-index:40;max-width:90vw;text-align:center;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+/* codex */
+.back{background:none;border:0;color:var(--mist);font-size:15px;opacity:.8;padding:8px 0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 8px}
+.stat{background:var(--panel);border-radius:14px;padding:10px 12px}
+.stat b{display:block;font-family:'Fraunces',Georgia,serif;font-size:22px;font-weight:600}
+.stat span{font-size:12px;opacity:.7}
+.cx h2{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;margin:22px 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.cx h2 small{font-family:'Nunito',sans-serif;font-size:13px;opacity:.7;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cell{background:#1F3126;border-radius:14px;padding:10px 6px;text-align:center;min-height:100px}
+.cell .e{font-size:34px;line-height:1.2}
+.cell .n{font-size:12px;margin-top:4px;line-height:1.25}
+.cell .r{font-size:11px;margin-top:3px;font-weight:700}
+.cell.no .e{filter:brightness(0)!important;opacity:.35}
+.cell .h{font-size:11.5px;font-style:italic;opacity:.78;margin-top:4px;line-height:1.3}
+.reset{margin-top:30px;background:none;border:0;color:#D9A091;opacity:.65;font-size:13px}
+@media (prefers-reduced-motion:reduce){.vi,.big{animation:none}#sprout{transition:none}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section id="garden" class="view">
+  <h1>Lanterngarden</h1>
+  <p class="sub" id="gstats"></p>
+  <nav id="tabs"></nav>
+  <div id="scene"></div>
+  <p id="sceneInfo"></p>
+  <button id="seedBtn" class="seed" hidden></button>
+  <button id="startBtn" class="primary">Begin focusing</button>
+  <button id="codexBtn" class="ghost">Open the codex</button>
+  <p id="storeNote" hidden>Progress saves while this page stays open here.</p>
+</section>
+
+<section id="focus" class="view" hidden>
+  <div class="ftop"><span id="fground"></span><span id="fpass"></span></div>
+  <div class="growth">
+    <svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="96" fill="none" stroke="#17261C" stroke-width="7"/><circle id="ring" cx="110" cy="110" r="96" fill="none" stroke="#F2B84B" stroke-width="7" stroke-linecap="round" stroke-dasharray="603.2" stroke-dashoffset="603.2"/></svg>
+    <div id="sprout">🌰</div>
+  </div>
+  <div id="ftime">0:00</div>
+  <div id="fnext"></div>
+  <div id="frow"></div>
+  <p id="fwarn" hidden>Your screen may fall asleep on its own, which counts as leaving. Set Android's screen timeout to 30 minutes (Settings → Display → Screen timeout) and just set the phone down without pressing the power button.</p>
+  <div class="fbtns">
+    <button id="musicBtn" class="music">🎵 Pick music (3 minute pass)</button>
+    <button id="endBtn" class="end"><span class="fill"></span><span>Hold to end session</span></button>
+  </div>
+  <p class="fnote">Stay here and the garden grows. Stepping away for more than 20 seconds wilts the sprout in progress. Blooms you've already grown are always safe.</p>
+</section>
+
+<section id="codex" class="view cx" hidden>
+  <button id="backBtn" class="back">← Back to the garden</button>
+  <h1>The codex</h1>
+  <div class="stats" id="stats"></div>
+  <div id="cxBody"></div>
+  <button id="resetBtn" class="reset">Start a new garden</button>
+</section>
+
+</div>
+<div id="modal" hidden><div class="card" id="modalCard"></div></div>
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const MIN=60e3, FIRST=5*MIN, EVERY=10*MIN, GRACE=20e3, PASS=3*MIN, LONG=60*MIN, KEY='lanterngarden-v1';
+const RN={c:'Common',u:'Uncommon',r:'Rare',l:'Legendary',m:'Mythic'};
+const RC={c:'#C9D6C4',u:'#8FC48A',r:'#7FB2F0',l:'#F2B84B',m:'#E58FD8'};
+const RS={c:26,u:30,r:34,l:40,m:46};
+
+const G=[
+ {n:'Meadow',at:0,bg:'linear-gradient(#2D4A5E 0%,#5B6F7A 28%,#6F8F5A 52%,#3F6B3A 100%)'},
+ {n:'Mushroom Hollow',at:12,bg:'linear-gradient(#1C1626,#3A2A3F 40%,#4A3A2A 70%,#2E2418)'},
+ {n:'Moon Pond',at:30,bg:'radial-gradient(circle at 78% 14%,#F5EFD0 0,#F5EFD0 18px,rgba(245,239,208,.18) 30px,transparent 60px),linear-gradient(#0D1B33,#1D3657 45%,#1F5A66 60%,#153C45)'},
+ {n:'Old Forest',at:60,bg:'linear-gradient(#10261C,#1F3D2A 45%,#2C4A2A 70%,#1B2E1B)'},
+ {n:'Crystal Grotto',at:100,bg:'linear-gradient(#150F2E,#2C1F55 50%,#3A2D6B 75%,#1D1640)'},
+ {n:'Star Orchard',at:160,bg:'radial-gradient(1.5px 1.5px at 20% 12%,#fff,transparent),radial-gradient(2px 2px at 70% 8%,#fff,transparent),radial-gradient(1.5px 1.5px at 45% 22%,#FFE9A8,transparent),radial-gradient(1.5px 1.5px at 86% 28%,#fff,transparent),radial-gradient(1.5px 1.5px at 10% 32%,#CFE,transparent),radial-gradient(1.5px 1.5px at 58% 36%,#fff,transparent),linear-gradient(#070B24,#1A1F4D 55%,#2B2A5A 75%,#3A3060)'}
+];
+
+const SP=[
+['clover','Clover','☘️','c',0],['sprout','Sprout','🌱','c',0],['tulip','Wild tulip','🌷','c',0],['daisy','Daisy','🌼','c',0],
+['wheat','Meadow grass','🌾','u',0],['sunflower','Sunflower','🌻','u',0],['lucky','Four-leaf clover','🍀','u',0],['rose','Garden rose','🌹','u',0],
+['bluetulip','Blue tulip','🌷','r',0,'hue-rotate(-140deg)'],['hibiscus','Hibiscus','🌺','r',0],
+['violetrose','Violet rose','🌹','l',0,'hue-rotate(270deg)'],['bouquet','Wildflower bouquet','💐','l',0],
+['everbloom','Everbloom','🌸','m',0,'hue-rotate(60deg) saturate(1.4)'],
+
+['redcap','Red cap','🍄','c',1],['chestnut','Chestnut','🌰','c',1],['fern','Hollow fern','🌿','c',1],['leaf','Fallen leaf','🍂','c',1],
+['maple','Maple leaf','🍁','u',1],['bluecap','Blue cap','🍄','u',1,'hue-rotate(200deg)'],
+['glowcap','Glowcap','🍄','r',1,'hue-rotate(100deg) saturate(1.5)'],['violetcap','Violet cap','🍄','r',1,'hue-rotate(270deg)'],
+['lantern','Fairy lantern','🏮','l',1],
+['ringqueen','Fairy-ring queen','🍄','m',1,'hue-rotate(40deg) saturate(1.6)'],
+
+['reed','Reed','🌾','c',2,'hue-rotate(40deg)'],['waterleaf','Water leaf','🍃','c',2],['pondtulip','Pond tulip','🌷','c',2,'hue-rotate(-50deg)'],
+['bamboo','River bamboo','🎋','u',2],['shell','Spiral shell','🐚','u',2],['waterblossom','Water blossom','🌸','u',2],
+['moonhibiscus','Moon hibiscus','🌺','r',2,'hue-rotate(180deg)'],['nightblossom','Night blossom','🌸','r',2,'hue-rotate(-90deg)'],
+['crystallily','Crystal lily','💮','l',2],
+['tidelily','Tide-dragon lily','🏵️','m',2,'hue-rotate(160deg) saturate(1.4)'],
+
+['pine','Pine','🌲','c',3],['oak','Oak','🌳','c',3],['litter','Leaf litter','🍂','c',3,'hue-rotate(-20deg)'],['moss','Moss','🌿','c',3,'hue-rotate(30deg)'],
+['birch','Birch','🌳','u',3,'hue-rotate(-40deg) brightness(1.15)'],['emberleaf','Ember maple','🍁','u',3,'hue-rotate(20deg)'],
+['chacruna','Chacruna','🍃','r',3,'saturate(1.6) brightness(.85)'],['cedar','Ancient cedar','🌲','r',3,'hue-rotate(60deg)'],
+['caapi','Caapi vine','🌿','l',3,'hue-rotate(-25deg) saturate(1.3)'],
+['heartwood','Heartwood','🌳','m',3,'hue-rotate(-70deg) saturate(1.8)'],
+
+['quartz','Quartz','💎','c',4,'grayscale(1) brightness(1.3)'],['amethyst','Amethyst','💎','c',4,'hue-rotate(60deg)'],
+['glowshroom','Cave glowshroom','🍄','c',4,'hue-rotate(160deg)'],['cavefern','Cave fern','🌿','c',4,'hue-rotate(100deg)'],
+['emerald','Emerald','💎','u',4,'hue-rotate(-80deg)'],['ruby','Ruby','💎','u',4,'hue-rotate(140deg)'],['candle','Grotto candle','🕯️','u',4],
+['orb','Seeing orb','🔮','r',4],['geode','Star geode','💠','r',4],
+['eye','Eye of the grotto','🧿','l',4],
+['mountainheart','Heart of the mountain','💎','m',4,'hue-rotate(170deg) saturate(2)'],
+
+['starfruit','Fallen star','⭐','c',5],['moonlet','Moonlet','🌙','c',5],['twinkle','Twinkle','🌟','c',5],
+['starapple','Star apple','🍏','u',5],['skyblossom','Sky blossom','🌸','u',5,'hue-rotate(-120deg)'],
+['comet','Comet','☄️','r',5],['ringed','Ringed world','🪐','r',5],
+['rue','Syrian rue','💮','l',5],['galaxy','Galaxy rosette','🏵️','l',5,'hue-rotate(220deg)'],
+['curare','Curare vine','🌿','m',5,'hue-rotate(160deg) saturate(1.8)']
+].map(([id,n,e,r,g,f])=>({id,n,e,r,g,f:f||''}));
+const SPM=Object.fromEntries(SP.map(s=>[s.id,s]));
+
+const cnt=g=>S.blooms.filter(b=>b.g===g).length;
+const hasR=r=>SP.some(s=>s.r===r&&S.found[s.id]);
+const lng=c=>Math.max(S.longestMs,c.sessionMs||0);
+const V=[
+ {id:'bee',n:'Bumblebee',e:'🐝',g:0,h:'Comes when the meadow gets busy.',t:c=>cnt(0)>=5},
+ {id:'ladybug',n:'Ladybug',e:'🐞',g:0,h:'Drawn to something rare.',t:c=>hasR('r')},
+ {id:'butterfly',n:'Butterfly',e:'🦋',g:0,h:'Needs half an hour of stillness.',t:c=>lng(c)>=30*MIN},
+ {id:'rabbit',n:'Morning rabbit',e:'🐇',g:0,h:'An early riser.',t:c=>c.startHour>=4&&c.startHour<9},
+ {id:'cricket',n:'Cricket',e:'🦗',g:0,h:'Sings once the garden is fifty strong.',t:c=>S.totalBlooms>=50},
+ {id:'snail',n:'Snail',e:'🐌',g:1,h:'Slowly finds its way to the hollow.',t:c=>cnt(1)>=3},
+ {id:'hedgehog',n:'Hedgehog',e:'🦔',g:1,h:'Waits for a full hour.',t:c=>lng(c)>=60*MIN},
+ {id:'cat',n:'Garden cat',e:'🐈',g:1,h:'Visits someone who keeps coming back in one day.',t:c=>(S.days[dk()]||0)>=3},
+ {id:'raccoon',n:'Raccoon',e:'🦝',g:1,h:'Loves unwrapping things.',t:c=>S.seedsOpened>=5},
+ {id:'frog',n:'Frog',e:'🐸',g:2,h:'Needs a pond with some life in it.',t:c=>cnt(2)>=5},
+ {id:'swan',n:'Swan',e:'🦢',g:2,h:'Arrives after ninety quiet minutes.',t:c=>lng(c)>=90*MIN},
+ {id:'otter',n:'Otter',e:'🦦',g:2,h:'Twenty-five hours of company.',t:c=>S.totalMs>=25*60*MIN},
+ {id:'owl',n:'Owl',e:'🦉',g:3,h:'Keeps late hours.',t:c=>c.hour>=22||c.hour<4},
+ {id:'deer',n:'Deer',e:'🦌',g:3,h:'Trusts a forest that has grown.',t:c=>cnt(3)>=10},
+ {id:'fox',n:'Fox',e:'🦊',g:3,h:'Ten hours, all told.',t:c=>S.totalMs>=10*60*MIN},
+ {id:'squirrel',n:'Squirrel',e:'🐿️',g:3,h:'Counts to one hundred.',t:c=>S.totalBlooms>=100},
+ {id:'sloth',n:'Sloth',e:'🦥',g:3,h:'Only for the very longest sit.',t:c=>lng(c)>=150*MIN},
+ {id:'dragon',n:'Grotto dragon',e:'🐉',g:4,h:'Guards the rarest thing of all.',t:c=>hasR('m')},
+ {id:'peacock',n:'Star peacock',e:'🦚',g:5,h:'Shows off near legends.',t:c=>hasR('l')}
+];
+
+const fresh=()=>({blooms:[],found:{},visitors:{},totalMs:0,totalBlooms:0,focusBlooms:0,sessions:0,longestMs:0,seeds:0,seedsOpened:0,days:{},plantIn:0,session:null});
+let S=fresh(), pendingNews=[], wake=null, dimT=null, lastSave=0;
+const useClaude=!!(window.storage&&window.storage.get);
+let useLocal=false; try{ if(!useClaude){localStorage.setItem('lg-test','1');localStorage.removeItem('lg-test');useLocal=true} }catch(e){}
+const hasStorage=useClaude||useLocal;
+try{ if(useLocal&&navigator.storage&&navigator.storage.persist)navigator.storage.persist() }catch(e){}
+
+async function load(){
+  try{
+    let raw=null;
+    if(useClaude){const r=await window.storage.get(KEY,false); raw=r&&r.value}
+    else if(useLocal){raw=localStorage.getItem(KEY)}
+    if(raw)S=Object.assign(fresh(),JSON.parse(raw));
+  }catch(e){}
+}
+let saveT; function save(){clearTimeout(saveT);saveT=setTimeout(saveNow,400)}
+async function saveNow(){
+  lastSave=Date.now();
+  try{ const data=JSON.stringify(S); if(useClaude)await window.storage.set(KEY,data,false); else if(useLocal)localStorage.setItem(KEY,data) }catch(e){}
+}
+
+function dk(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function fmt(ms){ms=Math.max(0,ms);const t=Math.floor(ms/1000),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=String(t%60).padStart(2,'0');return h?`${h}:${String(m).padStart(2,'0')}:${s}`:`${m}:${s}`}
+function fmtH(ms){const m=Math.floor(ms/MIN),h=Math.floor(m/60);return h?`${h}h ${m%60}m`:`${m}m`}
+function fil(sp){let f=sp.f; if(sp.r==='l')f+=' drop-shadow(0 0 6px rgba(242,184,75,.85))'; if(sp.r==='m')f+=' drop-shadow(0 0 10px rgba(229,143,216,.95))'; return f.trim()||'none'}
+const groundDone=i=>SP.filter(s=>s.g===i).every(s=>S.found[s.id]);
+
+const tq=[];let tBusy=false;
+function toast(m){tq.push(m);if(!tBusy)nextToast()}
+function nextToast(){const m=tq.shift();if(!m){tBusy=false;return}tBusy=true;const t=$('toast');t.innerHTML=m;t.classList.add('show');setTimeout(()=>{t.classList.remove('show');setTimeout(nextToast,400)},3200)}
+function news(m){ if(S.session){S.session.news.push(m);toast(m)} else pendingNews.push(m) }
+
+function roll(g,mode){
+  const W={normal:{c:58,u:28,r:10,l:3.5,m:.5},long:{c:45,u:32,r:16,l:6,m:1},seed:{c:0,u:0,r:70,l:25,m:5}}[mode];
+  let x=Math.random()*100,tier='c';
+  for(const k of ['m','l','r','u','c']){ if(x<W[k]){tier=k;break} x-=W[k] }
+  const order=['m','l','r','u','c'];
+  for(let i=order.indexOf(tier);i<order.length;i++){const pool=SP.filter(s=>s.g===g&&s.r===order[i]); if(pool.length)return pool[Math.random()*pool.length|0]}
+  return SP[0];
+}
+
+function addBloom(sp,g){
+  const isNew=!S.found[sp.id];
+  S.found[sp.id]=(S.found[sp.id]||0)+1;
+  S.blooms.push({s:sp.id,g,x:+(4+Math.random()*88).toFixed(1),y:+(Math.random()*60).toFixed(1)});
+  S.totalBlooms++;
+  for(let i=1;i<G.length;i++) if(S.totalBlooms===G[i].at) news(`🗝️ A new ground opened: the ${G[i].n}. Tap it in the garden to plant there.`);
+  if(isNew){ if(S.session)S.session.news.push(`<span style="filter:${fil(sp)}">${sp.e}</span> New species: ${sp.n} (${RN[sp.r]})`); if(groundDone(g))news(`👑 You found every species in the ${G[g].n}.`) }
+  return isNew;
+}
+
+function checkVisitors(c){
+  for(const v of V){ if(!S.visitors[v.id]&&v.t(c)){ S.visitors[v.id]={x:+(8+Math.random()*80).toFixed(1),y:+(8+Math.random()*50).toFixed(1)}; news(`${v.e} A visitor arrived in the ${G[v.g].n}: ${v.n.toLowerCase()}.`) } }
+}
+
+function awardBloom(at){
+  const s=S.session;
+  const sp=roll(s.g,at-s.start>=LONG?'long':'normal');
+  const isNew=addBloom(sp,s.g);
+  s.blooms.push(sp.id);
+  S.focusBlooms++;
+  toast(`<span style="filter:${fil(sp)}">${sp.e}</span> ${sp.n} <span style="color:${RC[sp.r]};font-weight:700">${RN[sp.r]}</span>${isNew?'<span class="badge">New</span>':''}`);
+  if(S.focusBlooms%5===0){S.seeds++;news('🎁 A wrapped seed appeared. Open it in the garden.')}
+  checkVisitors({sessionMs:at-s.start,hour:new Date(at).getHours(),startHour:s.startHour});
+  save();
+}
+function processUntil(t){const s=S.session;if(!s)return;while(s.nextAt<=t){const at=s.nextAt;s.nextAt+=EVERY;awardBloom(at)}}
+
+function startSession(){
+  const now=Date.now();
+  S.session={start:now,nextAt:now+FIRST,blooms:[],awayStart:null,passUntil:0,g:S.plantIn,lastSeen:now,startHour:new Date().getHours(),news:[]};
+  saveNow(); show('focus'); requestWake(); resetDim(); renderFocus();
+}
+
+function endSession(endAt,reason){
+  const s=S.session; if(!s)return;
+  processUntil(endAt);
+  const dur=endAt-s.start;
+  S.totalMs+=dur; S.sessions++; S.longestMs=Math.max(S.longestMs,dur); S.days[dk()]=(S.days[dk()]||0)+1;
+  checkVisitors({sessionMs:dur,startHour:s.startHour,hour:new Date(endAt).getHours()});
+  const summary={dur,blooms:s.blooms,reason,news:s.news,g:s.g};
+  S.session=null; releaseWake(); saveNow(); show('garden'); showSummary(summary);
+}
+
+function returnFromAway(){
+  const s=S.session; if(!s||!s.awayStart)return;
+  const now=Date.now(), allowed=Math.max(s.awayStart+GRACE,s.passUntil);
+  s.awayStart=null;
+  if(now>allowed) endSession(allowed,'wither'); else {processUntil(now);save()}
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(!S.session)return;
+  if(document.hidden){S.session.awayStart=Date.now();saveNow()}
+  else{returnFromAway(); if(S.session){requestWake();resetDim()}}
+});
+
+async function requestWake(){
+  try{ if(!('wakeLock' in navigator))throw 0; wake=await navigator.wakeLock.request('screen'); $('fwarn').hidden=true }
+  catch(e){ $('fwarn').hidden=false }
+}
+function releaseWake(){ if(wake){wake.release().catch(()=>{});wake=null} }
+function resetDim(){document.body.classList.remove('dim');clearTimeout(dimT);dimT=setTimeout(()=>{if(S.session)document.body.classList.add('dim')},45000)}
+
+function show(v){
+  ['garden','focus','codex'].forEach(x=>$(x).hidden=x!==v);
+  document.body.classList.toggle('focusing',v==='focus');
+  if(v!=='focus')document.body.classList.remove('dim');
+  if(v==='garden')renderGarden(); if(v==='codex')renderCodex();
+  window.scrollTo(0,0);
+}
+
+function renderGarden(){
+  const g=S.plantIn;
+  $('gstats').textContent=S.totalBlooms?`${fmtH(S.totalMs)} focused, ${S.totalBlooms} blooms, ${Object.keys(S.found).length} of ${SP.length} species found`:'A garden that grows while you focus.';
+  $('tabs').innerHTML=G.map((x,i)=>{const un=S.totalBlooms>=x.at;return `<button class="tab${i===g?' on':''}" data-i="${i}" ${un?'':'disabled'}>${un?x.n+(groundDone(i)?' 👑':''):'🔒 at '+x.at+' blooms'}</button>`}).join('');
+  const sc=$('scene'); sc.style.background=G[g].bg;
+  const pls=S.blooms.filter(b=>b.g===g).sort((a,b)=>b.y-a.y);
+  let h=pls.map(b=>{const sp=SPM[b.s];if(!sp)return'';const size=RS[sp.r]*(1-b.y/60*.4);return `<span class="pl" data-name="${sp.n}" style="left:${b.x}%;bottom:${b.y}%;font-size:${size.toFixed(1)}px;filter:${fil(sp)};z-index:${100-Math.round(b.y)}">${sp.e}</span>`}).join('');
+  h+=V.filter(v=>S.visitors[v.id]&&v.g===g).map(v=>{const p=S.visitors[v.id];return `<span class="vi" data-name="${v.n}" style="left:${p.x}%;bottom:${p.y}%;font-size:34px;z-index:150;animation-delay:-${(p.x%3).toFixed(1)}s">${v.e}</span>`}).join('');
+  if(!pls.length)h+=`<p class="empty">${g===0?'Nothing growing yet. Your first bloom arrives five minutes into a session.':'This ground is waiting for its first bloom.'}</p>`;
+  sc.innerHTML=h;
+  const here=SP.filter(s=>s.g===g);
+  $('sceneInfo').textContent=`${pls.length} bloom${pls.length===1?'':'s'} in the ${G[g].n}. ${here.filter(s=>S.found[s.id]).length} of ${here.length} species found here. Tap anything to see its name.`;
+  const sb=$('seedBtn'); sb.hidden=!S.seeds; sb.textContent=`🎁 Open a wrapped seed (${S.seeds} waiting)`;
+}
+
+function renderFocus(){
+  const s=S.session; if(!s)return;
+  const now=Date.now(), interval=s.blooms.length?EVERY:FIRST, prev=s.nextAt-interval, p=Math.min(1,Math.max(0,(now-prev)/interval));
+  $('fground').textContent=`Planting in the ${G[s.g].n}`;
+  $('fpass').textContent=s.passUntil>now?`🎵 Music pass ${fmt(s.passUntil-now)}`:'';
+  $('ftime').textContent=fmt(now-s.start);
+  $('fnext').textContent=`Next bloom in ${fmt(s.nextAt-now)}`;
+  $('ring').style.strokeDashoffset=(603.2*(1-p)).toFixed(1);
+  const sp=$('sprout'); sp.textContent=p<.3?'🌰':p<.65?'🌱':p<.92?'🌿':'✨'; sp.style.transform=`scale(${(.7+p*.55).toFixed(3)})`;
+  const row=s.blooms.map(id=>{const x=SPM[id];return `<span style="filter:${fil(x)}">${x.e}</span>`}).join('');
+  if($('frow').innerHTML!==row)$('frow').innerHTML=row;
+}
+
+function newsList(a){return a&&a.length?`<ul class="news">${a.map(m=>`<li>${m}</li>`).join('')}</ul>`:''}
+function modal(html,btn){$('modalCard').innerHTML=html+`<button class="primary" id="mOk" style="margin-top:18px">${btn}</button>`;$('modal').hidden=false;$('mOk').onclick=()=>{$('modal').hidden=true;renderGarden()}}
+
+function showSummary(x){
+  const bl=x.blooms.map(id=>{const sp=SPM[id];return `<span style="filter:${fil(sp)}">${sp.e}</span>`}).join(' ');
+  const wilt=x.reason==='wither';
+  const lead=wilt?`You were away for more than 20 seconds, so the session closed at ${fmt(x.dur)}. Every bloom you grew is safe in the garden.`:`You focused for ${fmt(x.dur)}.`;
+  const body=x.blooms.length?`<div style="font-size:34px;margin:14px 0;line-height:1.4">${bl}</div><p>${x.blooms.length} bloom${x.blooms.length>1?'s':''} planted in the ${G[x.g].n}.</p>`:`<p>The first bloom of every session arrives at five minutes.</p>`;
+  modal(`<h2>${wilt?'The sprout wilted':'Session complete'}</h2><p>${lead}</p>${body}${newsList(x.news)}`,'Back to the garden');
+}
+
+function openSeed(){
+  if(!S.seeds)return;
+  S.seeds--; S.seedsOpened++;
+  const g=S.plantIn, sp=roll(g,'seed'), isNew=addBloom(sp,g);
+  checkVisitors({}); saveNow();
+  const nw=pendingNews.splice(0);
+  modal(`<p style="opacity:.7;margin:0">The wrapping falls away…</p><div class="big" style="filter:${fil(sp)}">${sp.e}</div><h2>${sp.n}${isNew?'<span class="badge">New</span>':''}</h2><p style="color:${RC[sp.r]};font-weight:700;margin:0">${RN[sp.r]}</p>${newsList(nw)}`,'Plant it');
+}
+
+function renderCodex(){
+  $('stats').innerHTML=[[fmtH(S.totalMs),'Focused in total'],[S.sessions,'Sessions'],[fmt(S.longestMs),'Longest session'],[S.totalBlooms,'Blooms grown']].map(([b,l])=>`<div class="stat"><b>${b}</b><span>${l}</span></div>`).join('');
+  let h='';
+  G.forEach((g,i)=>{
+    const list=SP.filter(s=>s.g===i), f=list.filter(s=>S.found[s.id]).length;
+    h+=`<h2>${S.totalBlooms>=g.at?'':'🔒 '}${g.n}${groundDone(i)?' 👑':''}<small>${f} of ${list.length}</small></h2><div class="grid">`;
+    h+=list.map(s=>{const got=S.found[s.id];return `<div class="cell${got?'':' no'}"><div class="e" style="filter:${fil(s)}">${s.e}</div><div class="n">${got?s.n:'???'}</div><div class="r" style="color:${RC[s.r]}">${RN[s.r]}${got&&got>1?' ×'+got:''}</div></div>`}).join('');
+    h+='</div>';
+  });
+  const vf=V.filter(v=>S.visitors[v.id]).length;
+  h+=`<h2>Visitors<small>${vf} of ${V.length}</small></h2><div class="grid">`;
+  h+=V.map(v=>S.visitors[v.id]?`<div class="cell"><div class="e">${v.e}</div><div class="n">${v.n}</div><div class="h">Lives in the ${G[v.g].n}</div></div>`:`<div class="cell"><div class="e" style="opacity:.4">❔</div><div class="n">???</div><div class="h">${v.h}</div></div>`).join('');
+  h+='</div>';
+  $('cxBody').innerHTML=h;
+  $('resetBtn').textContent='Start a new garden'; $('resetBtn').dataset.armed='';
+}
+
+function tick(){
+  const s=S.session; if(!s||document.hidden||s.awayStart)return;
+  const now=Date.now(); processUntil(now); if(!S.session)return;
+  s.lastSeen=now; renderFocus(); if(now-lastSave>10000)saveNow();
+}
+
+$('startBtn').onclick=startSession;
+$('codexBtn').onclick=()=>show('codex');
+$('backBtn').onclick=()=>show('garden');
+$('seedBtn').onclick=openSeed;
+$('tabs').onclick=e=>{const b=e.target.closest('.tab');if(!b||b.disabled)return;S.plantIn=+b.dataset.i;save();renderGarden()};
+$('scene').onclick=e=>{const el=e.target.closest('.pl,.vi');if(el)toast(el.dataset.name)};
+$('focus').addEventListener('pointerdown',resetDim);
+$('musicBtn').onclick=()=>{const s=S.session;if(!s)return;s.passUntil=Date.now()+PASS;saveNow();toast('🎵 Music pass on for 3 minutes. Go pick something.');try{window.open('https://music.youtube.com/','_blank')}catch(e){}};
+const eb=$('endBtn');let ht;
+eb.addEventListener('pointerdown',()=>{eb.classList.add('holding');ht=setTimeout(()=>{eb.classList.remove('holding');if(S.session)endSession(Date.now(),'done')},1200)});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>eb.addEventListener(ev,()=>{clearTimeout(ht);eb.classList.remove('holding')}));
+eb.oncontextmenu=e=>e.preventDefault();
+$('resetBtn').onclick=()=>{const b=$('resetBtn');if(!b.dataset.armed){b.dataset.armed='1';b.textContent='Tap again to erase the whole garden';return}S=fresh();saveNow();show('garden')};
+
+(async()=>{
+  await load();
+  if(!hasStorage)$('storeNote').hidden=false;
+  show('garden');
+  if(S.session){const s=S.session;if(!s.news)s.news=[];if(!s.awayStart)s.awayStart=s.lastSeen||s.start;returnFromAway();if(S.session){show('focus');requestWake();resetDim();renderFocus()}}
+  setInterval(tick,500);
+})();
+</script>
+</body>
+</html>
